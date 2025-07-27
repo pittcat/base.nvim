@@ -4,128 +4,88 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Neovim plugin template called `base.nvim`. It provides a modern starting point for Neovim plugin development with best practices, testing framework, CI/CD pipelines, and integrated logging system powered by vlog.nvim.
+This is a Neovim plugin template called `base.nvim`. It provides a modern starting point for Neovim plugin development with best practices, testing framework, CI/CD pipelines, and integrated logging system using vlog.nvim.
 
 ## Common Development Commands
 
 ### Testing
 
-本项目使用 **busted + nlua** 进行测试，提供真实的 Neovim 环境。
-
-#### 运行测试
+Uses **busted + nlua** testing framework with real Neovim environment:
 
 ```bash
-# 运行所有测试
+# Run all tests (automatically defaults to spec/ directory)
 busted
 
-# 运行指定测试文件
+# Run specific test file  
 busted spec/base_spec.lua
-
-# 运行日志测试
 busted spec/log_spec.lua
 
-# 详细输出模式
+# Verbose output
 busted --verbose
+
+# Run single test by filter
+busted --filter="should support formatted logging"
 ```
 
-#### 测试环境设置
-
-项目已配置好 nlua 环境，无需额外设置：
-
-- `.busted` - 配置文件，使用 nlua 作为 Lua 解释器
-- `nlua-busted` - 包装脚本，解决 nlua+busted 兼容性
-- `run-busted-nlua.lua` - nlua 环境下的 busted 启动器
-
-#### 优势
-
-- ✅ **真实环境**: 使用真正的 vim API，无需 mock
-- ✅ **完整日志**: 可以看到实际的日志输出和调试信息
-- ✅ **易维护**: 不需要维护复杂的 mock 代码
-- ✅ **高保真**: 测试结果与实际使用环境一致
-
-#### 测试文件结构
-
-```
-spec/
-├── base_spec.lua    # 基础功能测试
-└── log_spec.lua     # 日志系统测试
-```
+**Environment**: Project is pre-configured with `nlua-busted` wrapper (auto-defaults to `spec/` directory) and `run-busted-nlua.lua` launcher to solve nlua+busted compatibility issues. No additional setup required.
 
 ### Health Check
 ```vim
 :checkhealth base
 ```
 
-## Architecture
+### Development Dependencies
 
-### Plugin Structure
-- **Entry Point**: `plugin/base.lua` - Defines user commands (`:Base`)
-- **Main Module**: `lua/base/init.lua` - Exports `setup()`, `hello()`, and `bye()` functions
-- **Configuration**: `lua/base/config.lua` - Manages plugin configuration with validation
-- **Health Check**: `lua/base/health.lua` - Implements `:checkhealth` support
-- **Logging System**: 
-  - `lua/base/logger.lua` - Logging wrapper with structured logging support
-  - `lua/base/log.lua` - vlog.nvim core logging library
-- **Type Definitions**: `lua/base/types.lua` - LuaCATS type annotations
-
-### Module Loading Pattern
-The plugin follows a lazy-loading pattern where:
-1. `plugin/base.lua` only defines commands without loading the main module
-2. The actual module is loaded on first command execution
-3. Configuration is managed through `M.setup()` function with schema validation
-
-### Testing Framework
-- Uses `busted` test framework with `nlua` as the Lua interpreter
-- Tests are located in `spec/` directory
-- Test files follow the `*_spec.lua` naming convention
-
-## Development Guidelines
-
-### Code Style
-- 2 spaces for indentation
-- Double quotes for strings
-- 120 character line width
-- Follow `.editorconfig` settings
-
-### Type Annotations
-Use LuaCATS annotations in `types.lua` for type safety:
-```lua
----@class base.Config
----@field enabled boolean
----@field style "modern"|"classic"
+Install via luarocks (Lua 5.1):
+```bash
+luarocks --lua-version=5.1 install nlua
+luarocks --lua-version=5.1 install busted
 ```
 
-### Adding New Features
-1. Define types in `lua/base/types.lua`
-2. Add configuration options in `lua/base/config.lua`
-3. Implement functionality in appropriate module
-4. Add appropriate logging with `require('base.logger')`
-5. Add tests in `spec/`
-6. Update documentation in `doc/base.txt`
+## Architecture
 
-### Logging Guidelines
-- Use `require('base.logger')` for all logging operations
-- Log levels: trace, debug, info, warn, error, fatal
-- Use structured logging for complex events: `log.structured(level, event, data)`
-- Control log level via `BASE_LOG_LEVEL` environment variable
-- Logs are written to `~/.local/share/nvim/base.nvim.log`
+### Plugin Loading Pattern
+The plugin follows a lazy-loading architecture:
+1. **Entry Point**: `plugin/base.lua` - Defines `:Base` command without loading main module
+2. **Main Module**: `lua/base/init.lua` - Loaded on first command execution, exports `setup()`, `hello()`, `bye()` 
+3. **Configuration Management**: `lua/base/config.lua` - Handles plugin configuration with validation
+4. **Module Dependencies**: Main module requires logger, which requires config, creating a dependency chain
 
-### Log Level Usage
-- **trace/debug**: Development and troubleshooting
-- **info**: General operational information
-- **warn**: Potentially harmful situations
-- **error**: Error events that allow application to continue
-- **fatal**: Severe errors that might cause termination
+### Logging Architecture
+Integrated vlog.nvim-based logging system:
+- **Core Library**: `lua/base/log.lua` - vlog.nvim implementation with `new()` factory function
+- **Wrapper**: `lua/base/logger.lua` - Plugin-specific logger instance with structured logging support
+- **Log Levels**: trace, debug, info, warn, error, fatal
+- **Output**: `~/.local/share/nvim/base.nvim.log` + console output
+- **Control**: `BASE_LOG_LEVEL` environment variable
 
-### CI/CD Workflow
-- **Testing**: Automatically runs on PR and main branch pushes
-- **Type Checking**: Uses Lua Language Server for static analysis
-- **Releases**: Automated via Release Please (conventional commits)
-- **Publishing**: Automatically publishes to LuaRocks on release
+Key logging features:
+```lua
+log.structured("info", "user_action", { action = "file_open", file = "test.lua" })
+log.fmt_info("User %s has %d items", "alice", 42)  -- Formatted logging
+```
 
-### Important Files
-- `.busted`: Test framework configuration
-- `.github/workflows/.luarc.json`: Lua Language Server configuration for CI
-- `base.nvim-scm-1.rockspec`: LuaRocks package specification
-- `docs/architecture.md`: System architecture diagrams (Mermaid)
-- `docs/usage-zh.md`: Comprehensive Chinese documentation
+### Testing Architecture
+- **Framework**: busted + nlua (real Neovim environment, no mocks)
+- **Compatibility Layer**: `nlua-busted` wrapper + `run-busted-nlua.lua` launcher 
+- **Test Location**: `spec/*_spec.lua` files
+- **Environment Isolation**: Tests run with temporary XDG directories
+
+### Configuration System
+- **Type Safety**: LuaCATS annotations in `lua/base/types.lua`
+- **Validation**: Configuration schema validation in setup process
+- **Default Handling**: Falls back to defaults when no config provided
+
+### CI/CD Pipeline
+- **Testing**: nvim-neorocks/nvim-busted-action on PR/push
+- **Release Management**: Conventional commits → Release Please → GitHub + LuaRocks publishing
+- **Dependencies**: Declared in `base.nvim-scm-1.rockspec` (nlua, busted for tests)
+
+### Template Features
+This is a **plugin template** designed for:
+- Modern Neovim plugin development
+- Real environment testing (not mocked)
+- Integrated logging system
+- Type-safe development with LuaCATS
+- Automated CI/CD workflows
+- LuaRocks packaging
