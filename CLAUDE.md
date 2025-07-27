@@ -9,15 +9,46 @@ This is a Neovim plugin template called `base.nvim`. It provides a modern starti
 ## Common Development Commands
 
 ### Testing
+
+本项目使用 **busted + nlua** 进行测试，提供真实的 Neovim 环境。
+
+#### 运行测试
+
 ```bash
-# Run all tests from project root
+# 运行所有测试
 busted
 
-# Run a specific test file
+# 运行指定测试文件
 busted spec/base_spec.lua
 
-# Run logging tests
+# 运行日志测试
 busted spec/log_spec.lua
+
+# 详细输出模式
+busted --verbose
+```
+
+#### 测试环境设置
+
+项目已配置好 nlua 环境，无需额外设置：
+
+- `.busted` - 配置文件，使用 nlua 作为 Lua 解释器
+- `nlua-busted` - 包装脚本，解决 nlua+busted 兼容性
+- `run-busted-nlua.lua` - nlua 环境下的 busted 启动器
+
+#### 优势
+
+- ✅ **真实环境**: 使用真正的 vim API，无需 mock
+- ✅ **完整日志**: 可以看到实际的日志输出和调试信息
+- ✅ **易维护**: 不需要维护复杂的 mock 代码
+- ✅ **高保真**: 测试结果与实际使用环境一致
+
+#### 测试文件结构
+
+```
+spec/
+├── base_spec.lua    # 基础功能测试
+└── log_spec.lua     # 日志系统测试
 ```
 
 ### Health Check

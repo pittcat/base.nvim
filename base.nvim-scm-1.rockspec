@@ -16,6 +16,7 @@ description = {
 
 test_dependencies = {
   "nlua",
+  "busted",
 }
 
 source = {

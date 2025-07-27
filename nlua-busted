@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# nlua-busted: 包装脚本，让 busted 使用 nlua 作为解释器
+
+# 运行我们的启动脚本，传递所有参数
+exec nlua run-busted-nlua.lua "$@"

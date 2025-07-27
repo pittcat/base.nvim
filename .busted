@@ -1,8 +1,9 @@
 return {
   _all = {
     coverage = false,
-    lpath = "lua/?.lua;lua/?/init.lua",
-    lua = "nlua",
+    lpath = "lua/?.lua;lua/?/init.lua;spec/?.lua",
+    lua = "./nlua-busted",  -- 使用我们的包装脚本
+    helper = nil,  -- 不需要 mock，nlua 提供真实的 vim API
   },
   default = {
     verbose = true,
@@ -11,3 +12,15 @@ return {
     verbose = true,
   },
 }
+
+-- busted + nlua 测试配置
+-- 
+-- 使用方法：
+--   busted              # 运行所有测试
+--   busted spec/        # 运行 spec 目录下的测试
+--   busted --verbose    # 详细输出模式
+--
+-- 环境要求：
+--   - 安装 Neovim
+--   - 安装 nlua: luarocks --lua-version=5.1 install nlua
+--   - 安装 busted: luarocks --lua-version=5.1 install busted
