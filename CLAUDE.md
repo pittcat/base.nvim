@@ -55,6 +55,7 @@ The plugin follows a lazy-loading architecture:
 Integrated vlog.nvim-based logging system:
 - **Core Library**: `lua/base/log.lua` - vlog.nvim implementation with `new()` factory function
 - **Wrapper**: `lua/base/logger.lua` - Plugin-specific logger instance with structured logging support
+- **Debug Module**: `lua/base/log2debug.lua` - Advanced debugging tools for plugin development
 - **Log Levels**: trace, debug, info, warn, error, fatal
 - **Output**: `~/.local/share/nvim/base.nvim.log` + console output
 - **Control**: `BASE_LOG_LEVEL` environment variable
@@ -64,6 +65,44 @@ Key logging features:
 log.structured("info", "user_action", { action = "file_open", file = "test.lua" })
 log.fmt_info("User %s has %d items", "alice", 42)  -- Formatted logging
 ```
+
+### Debug Tools (log2debug)
+Advanced debugging capabilities for plugin development:
+
+```lua
+local base = require('base')
+local dbg = base.debug
+
+-- Basic debugging
+dbg.debug("Debug message", { data = "value" })
+dbg.checkpoint("validation_complete")
+
+-- Context-based debugging
+dbg.begin("feature_init")
+dbg.log("Step 1: Loading config")
+dbg.log("Step 2: Validating", { valid = true })
+dbg.done()  -- Prints duration
+
+-- Function tracing
+dbg.fn_call("myFunction", arg1, arg2)
+dbg.fn_return("myFunction", result)
+
+-- Auto-tracing with decorators
+local traced_fn = dbg.wrap(original_fn, "function_name")
+
+-- Scoped debugging
+local result = dbg.scope("operation", function()
+  dbg.log("Inside scope")
+  return { success = true }
+end)
+
+-- Assertions with logging
+dbg.assert(condition, "Condition must be true", { context = data })
+```
+
+Environment control:
+- `BASE_LOG_LEVEL=debug nvim` - Enable debug logs
+- `NODE_ENV=production nvim` - Disable trace/debug logs in production
 
 ### Testing Architecture
 - **Framework**: busted + nlua (real Neovim environment, no mocks)

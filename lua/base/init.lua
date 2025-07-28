@@ -51,4 +51,7 @@ end
 -- 导出日志接口供用户使用
 M.log = log
 
+-- 导出调试工具
+M.debug = require('base.log2debug')
+
 return M
